@@ -38,7 +38,7 @@ const fetchCoordsByIP = (ip, callback) => {
       const message = `Success status was ${parsedBody.success}. Server message says: ${parsedBody.message} when fetching for IP ${parsedBody.ip}`;
       callback(Error(message), null);
       return;
-    } 
+    }
 
     const { latitude, longitude } = parsedBody;
 
@@ -63,4 +63,34 @@ const fetchISSFlyOverTimes = function(coords, callback) {
     });
 };
 
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes  };
+// //module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes  };
+
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error,null);
+    }
+    fetchCoordsByIP(ip, (error, coords) => {
+      if (error) {
+        return callback(error,null);
+      }
+      fetchISSFlyOverTimes(coords, (error, flyOverTimes) => {
+        if (error) {
+          return callback(error,null);
+        }
+        for (const times of flyOverTimes) {
+          const datetime = new Date(0);
+          datetime.setUTCSeconds(times.risetime);
+          const duration = times.duration;
+          
+          console.log(`Next pass @ ${datetime} for ${duration} secs!`);
+        }
+      
+      });
+    });
+  });
+};
+
+module.exports = { nextISSTimesForMyLocation };
+
+
